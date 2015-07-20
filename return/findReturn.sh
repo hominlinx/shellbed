@@ -2,6 +2,7 @@
 
 g_content=""
 g_fileInput=""
+g_dirInput=""
 g_return=0
 E_FILE_NOT_FOUND=100;
 E_FILE_INVALID=101;
@@ -12,12 +13,14 @@ function usage()
     echo "`basename $0` [-h|-f]... [FILE]";
     echo "  -h                  print this help info"
     echo "  -f <filename>       \"return\" replaced by \"RETURN\" in filename"
+    echo "  -d <dirname>        \"return\" replaced by \"RETURN\" in dir"
 }
 
 function detectFile()
 {
     if [ "X$g_fileInput" = "X" ]; then
         usage;
+        exit $E_FILE_NOT_FOUND
     fi
     # invalid filename
     if [ ! -f $g_fileInput ]
@@ -25,6 +28,39 @@ function detectFile()
         echo "file : $g_fileInput not found"
         exit $E_FILE_NOT_FOUND
     fi
+}
+
+function detectDir()
+{
+    if [ "X$g_dirInput" = "X" ]; then
+        usage;
+        exit $E_FILE_NOT_FOUND
+    fi
+
+    if [ ! -d $g_dirInput ]
+    then
+        echo "dir: $g_dirInput not found"
+        exit $E_FILE_NOT_FOUND
+    fi
+
+}
+
+function ergodic()
+{
+    for file in `ls $1`
+    do
+        if [ -d $1"/"$file ]
+        then
+            ergodic $1"/"$file
+        else
+            local path=$1"/"$file
+            if [ ${file##*.} = cpp ]; then
+                g_fileInput=$1"/"$file
+                echo $g_fileInput $path $file
+                handle_file;
+            fi
+        fi
+    done
 }
 
 
@@ -52,16 +88,23 @@ function handle_key()
     fi
 
     # find spec content and exclude them from multiline commens.
-    if [ "$1" != "return" ]
+    findLines_null=""
+    findLines_return=""
+    findLines_return1=""
+    if [ "$1" != "return" ] && [ "$1" != "return;" ]
     then
         findLines_null=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>"|sed 's/:.*$//g'`
-    else
-        findLines=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>\s*"| grep -E -v "\<$1\>\s*(\bnull\b)" | grep -E -v "\<$1\>\s*(\bNULL\b)"|sed 's/:.*$//g'`
+    elif [ "$1" = "return;" ]
+    then
+        findLines_return1=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
+    elif [ "$1" = "return" ] && [ "$1" != "return;" ]
+    then
+        findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>\s*"| grep -E -v "\<$1\>\s*(\bnull\b)" | grep -E -v "\<$1\>\s*(\bNULL\b)" | grep -E -v "$1;" |sed 's/:.*$//g'`
     fi
 
-    echo $1=== find: $findLines 
+    #echo $1=== return: $findLines_return , null: $findLines_null , return1: $findLines_return1
 
-    if [ "$findLines" = "" ]
+    if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_return1" = "" ]
     then
         return
     fi
@@ -79,7 +122,8 @@ function handle_key()
         fi
 
         #echo "multiline comments line: ${mStart[$i]}  -- ${mEnd[$j]}"
-        for line in $findLines
+        # for return
+        for line in $findLines_return
         do
             # line is increment
             #echo "handle line:$line , all:$findLines cnt:$cnt"
@@ -92,16 +136,53 @@ function handle_key()
             # line < ${mEnd[$i]}
             if [ $line -gt ${mStart[$i]} ]
             then
-                echo "============line:$line is in comments"
-                findLines=`echo "$findLines" | grep -v "$line"`
-                echo "************remain result: $findLines"
+                #echo "============line:$line is in comments"
+                findLines_return=`echo "$findLines_return" | grep -v "$line"`
+                #echo "************remain result: $findLines_return"
             fi
         done
+
+        #for return;
+        for line in $findLines_return1
+        do
+            # line is increment
+            #echo "handle line:$line , all:$findLines cnt:$cnt"
+            if [ $line -ge ${mEnd[$j]} ]
+            then
+                #echo "ge ${mEnd[$j]}"
+                break
+            fi
+
+            # line < ${mEnd[$i]}
+            if [ $line -gt ${mStart[$i]} ]
+            then
+                #echo "============line:$line is in comments"
+                findLines_return1=`echo "$findLines_return1" | grep -v "$line"`
+                #echo "************remain result: $findLines_return1"
+            fi
+        done
+
+        # for return null; return NULL; return  null; return  NULL;
+        for linenull in $findLines_null
+        do
+            if [ $linenull -ge ${mEnd[$j]} ]
+            then
+                break
+            fi
+
+            if [ $linenull -gt ${mStart[$j]} ]
+            then
+               # echo "============linenull:$linenull is in comments"
+                findLines_null=`echo "$findLines_null" | grep -v "$linenull" `
+               # echo "************remain result: $findLines_null"
+            fi
+        done
+
         i=$((i+1))
         j=$((j+1))
     done
 
-    if [ "$findLines" = "" ]
+    if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_return1" = "" ]
     then
         echo "can't find \"$1\" in file: \"$g_fileInput\""
         g_return=$((g_return+0))
@@ -109,15 +190,45 @@ function handle_key()
     fi
 
     #handle the key word
-    for line in $findLines
+    for line in $findLines_null
     do
-        echo $1 $line $g_fileInput
-        #sed -i ""$line"s/$1/RETURN()/g" $g_fileInput
+        #echo $1 $line $g_fileInput
+        sed -i ""$line"s/$1/RETURN_NULL()/g" $g_fileInput
+    done
+
+    for line in $findLines_return
+    do
+        #echo $1 $line $g_fileInput
+        sed -i ""$line"s/$1 \(.*\);/RETURN(\1);/g" $g_fileInput
+    done
+
+    for line in $findLines_return1
+    do
+        #echo $1 $line $g_fileInput
+        sed -i ""$line"s/$1/RETURN();/g" $g_fileInput
+
     done
 
 
 }
 
+
+function handle_file()
+{
+    detectFile;
+    # first handle return NULL key
+    getFileCleanContent $g_fileInput
+
+    for ((ii=0; ii < ${#aItems[@]}; ii++)) {
+        handle_key "${aItems[$ii]}"
+    }
+}
+
+function handle_dir()
+{
+    detectDir;
+    ergodic $g_dirInput
+}
 
 
 aItems=(
@@ -126,6 +237,7 @@ aItems=(
     "return  NULL"
     "return  null"
     "return"
+    "return;"
 )
 
 if [ "X$1" = X ]; then
@@ -137,7 +249,9 @@ do
     case $motion in
         "-h") usage;break
             ;;
-        "-f") g_fileInput=$2;detectFile;break;
+        "-f") g_fileInput=$2;handle_file;break;
+            ;;
+        "-d") g_dirInput=$2;handle_dir;break;
             ;;
         *)
             if [ "X$motion" != "X" ]; then
@@ -147,11 +261,5 @@ do
     esac
 done
 
-# first handle return NULL key
-getFileCleanContent $g_fileInput
-
-for ((ii=0; ii < ${#aItems[@]}; ii++)) {
-    handle_key "${aItems[$ii]}"
-}
 
 
