@@ -17,6 +17,8 @@ int bmain() "fda"
     return null;
     return  null;
     return  NULL;
+    return;
+    return ;
 }
     return null;
 
