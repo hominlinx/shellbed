@@ -42,7 +42,6 @@ function detectDir()
         echo "dir: $g_dirInput not found"
         exit $E_FILE_NOT_FOUND
     fi
-
 }
 
 function ergodic()
