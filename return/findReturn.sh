@@ -92,16 +92,17 @@ function handle_key()
     findLines_void=""
     if [ "$1" != "return" ] && [ "$1" != "return;" ] && [ "$1" != "return ;" ]
     then
-        findLines_null=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>"|sed 's/:.*$//g'`
+        findLines_null=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
     elif [ "$1" = "return;" ] || [ "$1" = "return ;" ]
     then
         findLines_void=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
     elif [ "$1" = "return" ] && [ "$1" != "return;" ] && [ "$1" != "return ;" ]
     then
-        findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>\s*"| grep -E -v "\<$1\>\s*(\bnull\b)" | grep -E -v "\<$1\>\s*(\bNULL\b)" | grep -E -v "$1;" | grep -E -v "$1 ;" |sed 's/:.*$//g'`
+        findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>\s*" | grep -E -v "\<$1\>\s*(\bnull\b);" | grep -E -v "\<$1\>\s*(\bNULL\b);"| grep -E -v "$1;" | grep -E -v "$1 ;"| sed 's/:.*$//g'`
     fi
 
-    #echo $1=== return: $findLines_return , null: $findLines_null , void: $findLines_void
+    echo $1=== return: $findLines_return , null: $findLines_null , void: $findLines_void
+    return
 
     if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_void" = "" ]
     then
@@ -191,20 +192,20 @@ function handle_key()
     #handle the key word
     for line in $findLines_null
     do
-        #echo $1 $line $g_fileInput
-        sed -i ""$line"s/$1/RETURN_NULL()/g" $g_fileInput
+        echo $1 $line $g_fileInput
+        #sed -i ""$line"s/$1/RETURN_NULL()/g" $g_fileInput
     done
 
     for line in $findLines_return
     do
-        #echo $1 $line $g_fileInput
-        sed -i ""$line"s/$1 \(.*\);/RETURN(\1);/g" $g_fileInput
+        echo $1 $line $g_fileInput
+        #sed -i ""$line"s/$1 \(.*\);/RETURN(\1);/g" $g_fileInput
     done
 
     for line in $findLines_void
     do
-        #echo $1 $line $g_fileInput
-        sed -i ""$line"s/$1/RETURN_VOID();/g" $g_fileInput
+        echo $1 $line $g_fileInput
+        #sed -i ""$line"s/$1/RETURN_VOID();/g" $g_fileInput
 
     done
 
@@ -233,10 +234,10 @@ function handle_dir()
 
 
 aItems=(
-    "return NULL"
-    "return null"
-    "return  NULL"
-    "return  null"
+    "return NULL;"
+    "return null;"
+    "return  NULL;"
+    "return  null;"
     "return"
     "return;"
     "return ;"
