@@ -19,6 +19,7 @@ int bmain() "fda"
     return NULL== a;
     return null == b;
     return NULL == pSocket ? NULL : pSocket->socketBase();
+    bool GetCanvasOffSet(INT iCanvasIndex, INT& iOffSetX, INT& iOffSetY){return false;};
     return;
      BOOL Lock(DWORD msec = INFINITE) {return uc.Lock(msec);}
     return ;
