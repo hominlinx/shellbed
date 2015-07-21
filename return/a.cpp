@@ -8,7 +8,7 @@
 int bmain() "fda"
 {
     //*ds
-    return 0;
+   return 0;
     return (adgc);
     return new anull;
     return  null;
@@ -20,7 +20,7 @@ int bmain() "fda"
     return null == b;
     return NULL == pSocket ? NULL : pSocket->socketBase();
     return;
-     BOOL Lock(DWORD msec = INFINITE) {return uc.Lock(msec);};
+     BOOL Lock(DWORD msec = INFINITE) {return uc.Lock(msec);}
     return ;
 }
     return null;

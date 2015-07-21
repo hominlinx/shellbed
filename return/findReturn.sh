@@ -102,7 +102,6 @@ function handle_key()
     fi
 
     echo $1=== return: $findLines_return , null: $findLines_null , void: $findLines_void
-    return
 
     if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_void" = "" ]
     then
@@ -192,20 +191,20 @@ function handle_key()
     #handle the key word
     for line in $findLines_null
     do
-        echo $1 $line $g_fileInput
-        #sed -i ""$line"s/$1/RETURN_NULL()/g" $g_fileInput
+        #echo $1 $line $g_fileInput
+        sed -i ""$line"s/$1/RETURN_NULL()/g" $g_fileInput
     done
 
     for line in $findLines_return
     do
-        echo $1 $line $g_fileInput
-        #sed -i ""$line"s/$1 \(.*\);/RETURN(\1);/g" $g_fileInput
+        #echo $1 $line $g_fileInput
+        sed -i ""$line"s/$1 \(.*\);/RETURN(\1);/g" $g_fileInput
     done
 
     for line in $findLines_void
     do
-        echo $1 $line $g_fileInput
-        #sed -i ""$line"s/$1/RETURN_VOID();/g" $g_fileInput
+        #echo $1 $line $g_fileInput
+        sed -i ""$line"s/$1/RETURN_VOID();/g" $g_fileInput
 
     done
 
