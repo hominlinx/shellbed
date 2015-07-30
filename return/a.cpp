@@ -10,7 +10,8 @@ int bmain() "fda"
     //*ds
    return 0;
     return (adgc);
-    return new anull;
+    return new(a) anull;
+    RETURN_NEW(new(a) anull);
     return  null;
     return NULL;
     return null;

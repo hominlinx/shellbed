@@ -89,21 +89,25 @@ function handle_key()
     # find spec content and exclude them from multiline commens.
     findLines_null=""
     findLines_return=""
+    findLines_new=""
     findLines_void=""
-    if [ "$1" != "return" ] && [ "$1" != "return;" ] && [ "$1" != "return ;" ]
+    if [ "$1" != "return" ] && [ "$1" != "return new\(" ] && [ "$1" != "return;" ]
     then
         findLines_null=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
-    elif [ "$1" = "return;" ] || [ "$1" = "return ;" ]
+    elif [ "$1" = "return new\(" ]
+    then
+        findLines_new=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
+    elif [ "$1" = "return;" ]
     then
         findLines_void=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
-    elif [ "$1" = "return" ] && [ "$1" != "return;" ] && [ "$1" != "return ;" ]
+    elif [ "$1" = "return" ] && [ "$1" != "return\snew\(" ] && [ "$1" != "return;" ]
     then
-        findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>\s*" | grep -E -v "\<$1\>\s*(\bnull\b);" | grep -E -v "\<$1\>\s*(\bNULL\b);"| grep -E -v "$1\s{0,1};" | sed 's/:.*$//g'`
+        findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "\<$1\>\s*" | grep -E -v "\<$1\>\s*(\bnull\b);" | grep -E -v "\<$1\>\s*(\bNULL\b);"| grep -E -v "$1\snew\(" | grep -E -v "$1;" | sed 's/:.*$//g'`
     fi
 
-    #echo $1=== return: $findLines_return , null: $findLines_null , void: $findLines_void
+    #echo $1=== return: $findLines_return , null: $findLines_null , new: $findLines_new, void: $findLines_void
 
-    if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_void" = "" ]
+    if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_new" = "" ] && [ "$findLines_void" = "" ]
     then
         return
     fi
@@ -141,6 +145,26 @@ function handle_key()
             fi
         done
 
+        #for return new(xx) xxx;
+        for line in $findLines_new
+        do
+            # line is increment
+            #echo "handle line:$line , all:$findLines cnt:$cnt"
+            if [ $line -ge ${mEnd[$j]} ]
+            then
+                #echo "ge ${mEnd[$j]}"
+                break
+            fi
+
+            # line < ${mEnd[$i]}
+            if [ $line -gt ${mStart[$i]} ]
+            then
+                #echo "============line:$line is in comments"
+                findLines_new=`echo "$findLines_new" | grep -v "$line"`
+                #echo "************remain result: $findLines_new"
+            fi
+        done
+
         #for return;
         for line in $findLines_void
         do
@@ -160,6 +184,7 @@ function handle_key()
                 #echo "************remain result: $findLines_void"
             fi
         done
+
 
         # for return null; return NULL; return  null; return  NULL;
         for linenull in $findLines_null
@@ -181,7 +206,7 @@ function handle_key()
         j=$((j+1))
     done
 
-    if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_void" = "" ]
+    if [ "$findLines_return" = "" ] && [ "$findLines_null" = "" ] && [ "$findLines_new" = "" ] && [ "$findLines_void" = "" ]
     then
         echo "can't find \"$1\" in file: \"$g_fileInput\""
         g_return=$((g_return+0))
@@ -192,20 +217,25 @@ function handle_key()
     for line in $findLines_null
     do
         #echo $1 $line $g_fileInput
-        sed -i ""$line"s/$1/RETURN_NULL();/g" $g_fileInput
+        sed -i ""$line"s/$1/RETURN_NULL;/g" $g_fileInput
     done
 
     for line in $findLines_return
     do
         #echo $1 $line $g_fileInput
-        #sed -i ""$line"s/$1 \(.*\);/RETURN(\1);/g" $g_fileInput
         sed -i ""$line"s/$1 \([^;]*\);/RETURN(\1);/g" $g_fileInput
     done
 
     for line in $findLines_void
     do
         #echo $1 $line $g_fileInput
-        sed -i ""$line"s/$1/RETURN_VOID();/g" $g_fileInput
+        sed -i ""$line"s/$1/RETURN();/g" $g_fileInput
+    done
+
+    for line in $findLines_new
+    do
+        #echo $1 $line $g_fileInput
+        sed -i ""$line"s/return new(\([^;]*\);/RETURN_NEW(new\(\1);/g" $g_fileInput
 
     done
 
@@ -240,7 +270,7 @@ aItems=(
     "return  null;"
     "return"
     "return;"
-    "return ;"
+    "return new\("
 )
 
 if [ "X$1" = X ]; then
