@@ -9,6 +9,7 @@ E_FILE_INVALID=101;
 E_RETURN_INVALID=101;
 
 
+
 function usage()
 {
     echo "`basename $0` [-h|-f]... [FILE]";
@@ -88,23 +89,25 @@ function handle_key()
     fi
 
     # find spec content and exclude them from multiline commens.
+    findLines_return_exp=""
     findLines_return=""
     findLines_other=""
 
     if [ "$1" = "RETURN\(new\(" ] || [ "$1" = "RETURN\(\snew\(" ] || [ "$1" = "RETURN\(NULL\)" ] || [ "$1" = "RETURN\(null\)" ]
     then
         findLines_other=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
+    elif [ "$1" = "return" ]
+    then
+        findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
     else
-        findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|grep -E -v "RETURN\s*\([a-zA-Z0-9_]*\);"|grep -E -v "RETURN\s*\(new\("|grep -E -v "RETURN\s*\(NULL\)"|grep -E -v "RETURN\s*\(null\)"|sed 's/:.*$//g'`
+        findLines_return_exp=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|grep -E -v "RETURN\s*\([a-zA-Z0-9_]*\);"|grep -E -v "RETURN\s*\(new\("|grep -E -v "RETURN\s*\(NULL\)"|grep -E -v "RETURN\s*\(null\)"|sed 's/:.*$//g'`
     fi
 
-    #findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
-    #findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
 
 
-    #echo $1=== return: $findLines_return , $findLines_other
+    #echo $1=== return: $findLines_return_exp , $findLines_other, $findLines_return
 
-    if [ "$findLines_return" = "" ] && [ "$findLines_other" = "" ]
+    if [ "$findLines_return_exp" = "" ] && [ "$findLines_other" = "" ] && [ "$findLines_return" = "" ]
     then
         return
     fi
@@ -122,6 +125,26 @@ function handle_key()
         fi
 
         #echo "multiline comments line: ${mStart[$i]}  -- ${mEnd[$j]}"
+        # for return
+        for line in $findLines_return_exp
+        do
+            # line is increment
+            #echo "handle line:$line , all:$findLines cnt:$cnt"
+            if [ $line -ge ${mEnd[$j]} ]
+            then
+                #echo "ge ${mEnd[$j]}"
+                break
+            fi
+
+            # line < ${mEnd[$i]}
+            if [ $line -gt ${mStart[$i]} ]
+            then
+                #echo "============line:$line is in comments"
+                findLines_return_exp=`echo "$findLines_return_exp" | grep -v "$line"`
+                #echo "************remain result: $findLines_return_exp"
+            fi
+        done
+
         # for return
         for line in $findLines_return
         do
@@ -158,7 +181,7 @@ function handle_key()
             then
                 #echo "============line:$line is in comments"
                 findLines_other=`echo "$findLines_other" | grep -v "$line"`
-                #echo "************remain result: $findLines_return"
+                #echo "************remain result: $findLines_return_exp"
             fi
         done
 
@@ -166,14 +189,14 @@ function handle_key()
         j=$((j+1))
     done
 
-    if [ "$findLines_return" = "" ] && [ "$findLines_other" = "" ]
+    if [ "$findLines_return_exp" = "" ] && [ "$findLines_other" = "" ] && [ "$findLines_return" = "" ]
     then
         echo "can't find \"$1\" in file: \"$g_fileInput\""
         g_return=$((g_return+0))
         return
     else
         echo "find \"$1\" in file : \"$g_fileInput\""
-        #exit $E_RETURN_INVALID
+        exit $E_RETURN_INVALID
     fi
 
 
@@ -190,7 +213,7 @@ function handle_file()
         handle_key "${aItems[$ii]}"
     }
 
-    echo $g_fileInput replaced ok...
+    echo $g_fileInput check ok...
 }
 
 function handle_dir()
@@ -200,7 +223,9 @@ function handle_dir()
 }
 
 
+#不允许出现 RETURN（表达式） / return / RETURN（NULL）
 aItems=(
+    "return"
     "RETURN\s*\("
     "RETURN\(new\("
     "RETURN\(\snew\("

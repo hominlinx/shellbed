@@ -41,7 +41,7 @@ int bmain() "fda"
     //RETURN(new(a) a); // error
     RETURN(NULL); // error
 }
-    return null;
+//return null;
 
 
 
