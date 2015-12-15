@@ -6,3 +6,10 @@
 
 4. `return` 是一个将cpp里面的“return XXX” 转换为“RETURN（XXX）”的脚本。
 
+5. `run_L2.sh` 是自动从suntec服务器上下载，并且编译。如果每周一到周五的凌晨3点半运行脚本,需要`crontab`， 参考了[网络](http://linuxtools-rst.readthedocs.org/zh_CN/latest/tool/crontab.html) , 使用`vi` 编辑需要编辑$HOME目录下的. profile文件，在其中加入这样一行:`EDITOR=vi; export EDITOR`
+
+```
+执行命令:"crontab -e"
+30 6 * * 1-5 ~/suntec/run_L2.sh > ~/suntec/L2log.log 2>&1
+```
+

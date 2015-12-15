@@ -100,7 +100,7 @@ function handle_key()
     then
         findLines_return=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|sed 's/:.*$//g'`
     else
-        findLines_return_exp=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|grep -E -v "RETURN\s*\([a-zA-Z0-9_]*\);"|grep -E -v "RETURN\s*\(new\("|grep -E -v "RETURN\s*\(NULL\)"|grep -E -v "RETURN\s*\(null\)"|sed 's/:.*$//g'`
+        findLines_return_exp=`echo "$g_content" |sed 's/.*\*\///g'|sed 's/\/\*.*$/$/g'|grep -E -n "$1"|grep -E -v "RETURN\s*\([*a-zA-Z0-9_]*\);"|grep -E -v "RETURN\s*\(new\("|grep -E -v "RETURN\s*\(NULL\)"|grep -E -v "RETURN\s*\(null\)"|sed 's/:.*$//g'`
     fi
 
 

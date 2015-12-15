@@ -1,0 +1,99 @@
+{
+    "log": {
+        "filter": {
+            "verbosity":"debug"
+                ,"modules": {
+                    "POLICY": 4
+
+                    //value	file logcat printf
+                    // 0	off	  off	off
+                    // 1	off	  off	on
+                    // 2	off	  on	off
+                    // 3	off	  on	on
+                    // 4	on	  off	off
+                    // 5	on	  off	on
+                    // 6	on	  on	off
+                    // 7	on	  on	on
+
+                    , "ERROR  ": 0
+                    , "LOC    ": 0
+                    , "MAP    ": 0
+                    , "PATH   ": 0
+                    , "GUIDE  ": 0
+                    , "SRCH   ": 0
+                    , "VICS   ": 0
+                    , "HWAY   ": 0
+                    , "BASE   ": 0
+                    , "FILE   ": 0
+                    , "VR     ": 0
+                    , "VP     ": 0
+                    , "POINT  ": 0
+                    , "EVENT  ": 0
+                    , "W3     ": 0
+                    , "TTS    ": 0
+                    , "NVCOM  ": 0
+                    , "DEBUG  ": 0
+                    , "MAPD   ": 0
+                    , "PATHT  ": 0
+                    , "ORBIS  ": 0
+                    , "EFECT  ": 0
+                    , "FTEST  ": 0
+                    , "COLT   ": 0
+                    , "DATAE  ": 0
+                    , "WEBP   ": 0
+                    , "VC     ": 0
+                    , "VRSB   ": 0
+                    , "NMAIN  ": 0
+
+                    , "ERROR_P": 0
+                    , "LOC_P  ": 0
+                    , "MAP_P  ": 0
+                    , "PATH_P ": 0
+                    , "GUIDE_P": 0
+                    , "SRCH_P ": 0
+                    , "VICS_P ": 0
+                    , "HWAY_P ": 0
+                    , "BASE_P ": 0
+                    , "FILE_P ": 0
+                    , "VR_P   ": 0
+                    , "VP_P   ": 0
+                    , "POINT_P": 0
+                    , "EVENT_P": 0
+                    , "W3_P   ": 0
+                    , "TTS_P  ": 0
+                    , "NVCOM_P": 0
+                    , "DEBUG_P": 0
+                    , "PATHT_P": 0
+                    , "ORBIS_P": 0
+                    , "EFECT_P": 0
+                    , "FTEST_P": 0
+                    , "COLT_P ": 0
+                    , "DATAE_P": 0
+                    , "WEBP_P ": 0
+                    , "VC_P   ": 0
+                    , "VRSB_P ": 0
+                    , "NMAIN_P": 15
+                    , "POLL_P ": 0
+                    , "UKNOW  ": 0
+
+                    // for "RETURN(false) and RETURN_NULL"
+                    , "RTNFALSE": 0
+                    , "RTNNULL ": 0
+                }
+        }
+    , "layout": "[%t] : %i : %n : %l"
+    , "target" : {
+            "file": {
+                 "max-size": 2097152
+            }
+            ,"console": "on"
+            ,"logcat": "on"
+            ,"ncperformance": "on"
+        }
+   }
+, "test" : {
+        "threads": 20
+        , "count" : 500000
+    }
+}
+
